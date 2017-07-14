@@ -4,7 +4,7 @@
   
   <!-- 头部信息 -->
   <div id="head">
-    分隔符(delimiter):<input type="text" name="delimiter" v-model="delimiter">
+    分隔符(delimiter):<input type="text" name="delimiter" v-model="deviceinfo.delimiter">
     命令起始位置<input type="text" name="commandindex">
     命令长度<input type="text" name="length">
     头部字节<input type="text" name="head">
@@ -76,7 +76,7 @@ export default {
 
       responses:[{name:"CurrentData",value:[]},{name:"ControlData",value:[]},{name:"Heartbeat",value:[]}],
       commands:[{name:"CurrentData",value:[]},{name:"ControlData",value:[]}],
-
+      deviceinfo:{delimiter:"",commandindex:"",length:"",head:""},
       checkcodes:[],
       channels:[]
 
@@ -109,9 +109,11 @@ export default {
         
     },
     ExportExcel:function(){
-      console.log(this.channels.count);
-      // var a =JSON.parse(""+this.channels);
-      // console.log(a.count);
+
+      console.log(this.channels[0]);
+      console.log(this.channels.length);
+      var a =JSON.parse(JSON.stringify(this.channels));
+      console.log(a[0]);
       for (var i = 0; i < this.channels.length; i++){
         // console.log(this.channels[i]);
       }
@@ -137,8 +139,9 @@ export default {
           }
           //wb.SheetNames[0]是获取Sheets中第一个Sheet的名字
           //wb.Sheets[Sheet名]获取第一个Sheet的数据
-          that.channels=JSON.stringify( xlsx.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]) );
-          
+          // JSON.parse(String)
+          // that.channels=JSON.stringify( xlsx.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]) );
+          that.channels= xlsx.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]) ;
       };
       if(rABS) {
           reader.readAsArrayBuffer(file);
@@ -150,7 +153,6 @@ export default {
     handleOk (convertedData) {
       console.log(convertedData)
     },
-
     result:function(){
       console.log(this.responses[0].name);
       console.log(this.responses[0].value);
