@@ -6,7 +6,7 @@
   <div id="head">
 
     <!-- infos： {{deviceinfo}}<br/> -->
-    <!-- responses： {{responses}}<br/> -->
+    responses： {{responses}}<br/>
     <!-- commands： {{commands}}<br/> -->
 
     类型(delimiter):<input type="text" name="type" v-model="deviceinfo.type">
