@@ -4,31 +4,24 @@
   
   <!-- 头部信息 -->
   <div id="head">
-
-    <!-- infos： {{deviceinfo}}<br/> -->
-    <!-- responses： {{responses}}<br/> -->
-    <!-- commands： {{commands}}<br/> -->
-
-    类型(delimiter):<input type="text" name="type" v-model="deviceinfo.type">
-    分隔符:<input type="text" name="value" v-model="deviceinfo.value">
-    命令起始位置<input type="text" name="commandindex" v-model="deviceinfo.commandindex">
-    命令长度<input type="text" name="length" v-model="deviceinfo.length">
-    头部字节<input type="text" name="head" v-model="deviceinfo.head">
+    分隔符(delimiter):<input type="text" name="delimiter" v-model="deviceinfo.delimiter">
+    命令起始位置<input type="text" name="commandindex">
+    命令长度<input type="text" name="length">
+    头部字节<input type="text" name="head">
     <input type="file" @change="ReadExcel">
-    <input type="button" @click="ExportExcel" value="导入">
-    <!-- <input type="button" @click="ExportXml" value="生成"> -->
-    <a v-bind:href="href" download="xml.txt" @click="ExportXml">下载</a>
+    <input type="button" @click="ExportExcel" value="read">
     <!-- <vue-xlsx-table @on-click-ok="handleOk"></vue-xlsx-table> -->
     <!-- <input type="file" v-model="filePath"/> -->
   </div>
-  <!-- <div>{{channels}}</div> -->
-  <!-- <button v-on:click="result">log</button> -->
+  <div>{{channels}}</div>
+  <button v-on:click="result">log</button>
 
   <!-- response信息 -->
   <div id="response" v-for="(response,i) in responses">
     <h4>收到数据{{i+1}}:{{response.name}}</h4>
     <!-- 命令名称<input type="text" name="responsename" v-model="response.name"> -->
     <button v-on:click="addresponsenode(i)">添加</button>
+
     <div v-for="(resnode,index) in response.value"> 
       <!-- <div>{{resnode}}</div> -->
       序号<input type="text" name="index" v-model="index" readonly="true">
@@ -45,14 +38,6 @@
       <h4>下发命令{{i+1}}:{{command.name}}</h4>
       <!-- 命令名称<input type="text" name="commandname" v-model="command.name"> -->
       <button v-on:click="addcommandnode(i)">添加</button>
-      校验码类型:
-      <select v-model="command.chk">
-       <option selected value="ascii">ascii</option>
-       <option value="banana">香蕉</option>
-       <option value="watermelon">西瓜</option>
-      </select>
-      <input type="text" name="start" v-model="command.start">-<input type="text" name="end" v-model="command.end"><button @click="getcheckcode(command)">生成校验码</button>
-
       <div v-for="(commandnode,index) in command.value"> 
         <!-- <div>{{commandnode}}</div> -->
         序号<input type="text" name="index" v-model="index" readonly="true">
@@ -88,32 +73,32 @@ export default {
   data () {
     return {
       msg: 'Welcome to Your Vue.js App',
+
       responses:[{name:"CurrentData",value:[]},{name:"ControlData",value:[]},{name:"Heartbeat",value:[]}],
-      commands:[{name:"CurrentData",value:[],start:0,end:0,chk:"ascii"},{name:"ControlData",value:[],start:0,end:0,chk:"ascii"}],
-      deviceinfo:{type:"",value:"",commandindex:"",length:"",head:""},
+      commands:[{name:"CurrentData",value:[]},{name:"ControlData",value:[]}],
+      deviceinfo:{delimiter:"",commandindex:"",length:"",head:""},
       checkcodes:[],
-      channels:[],
-      href:""
+      channels:[]
 
     }
   },
   methods:{
     addresponsenode:function(i){
-      var response ={name:"",type:"",size:""};
+      var response ={name:null,type:null,size:null};
       this.responses[i].value.push(response);
     },
     delresponsenode:function(i,index){
       this.responses[i].value.splice(index,1);
     },
     addcommandnode:function(i){
-      var command ={name:"",type:"",value:""};
+      var command ={name:null,type:null,value:null};
       this.commands[i].value.push(command);
     },
     delcommandnode:function(i,index){
       this.commands[i].value.splice(index,1);
     },
     addcheckcodenode:function(){
-      var checkcode ={name:"",type:"",value:""};
+      var checkcode ={name:null,type:null,value:null};
       this.checkcodes.push(checkcode);
     },
     delcheckcodenode:function(index){
@@ -123,55 +108,16 @@ export default {
         param.splice(index,0,{});
         
     },
-    //将excel添加进来
     ExportExcel:function(){
-      for (var chi =0 ;chi< this.channels.length; chi++) {
-        var r={}; 
-        r.name=this.channels[chi].channelid;
-        r.type=this.channels[chi].type;
-        r.size=this.channels[chi].size;
-        this.responses[0].value.push(r);
-      }
-    },
-    //下载xml
-    ExportXml:function(){
-      var infostr='<infos type="' +this.deviceinfo.type+ '" value="' +this.deviceinfo.value +'" commandindex="' +this.deviceinfo.commandindex+ '" length="' +this.deviceinfo.length +'" head="' +this.deviceinfo.head+ '"></infos>';
-      var reslength = this.responses.length;
-      var chlength =this.channels.length;
-      var responsesstr ="<responses>"; 
-      for (var ri = 0; ri <  this.responses.length; ri++) {  
-        responsesstr = responsesstr + '<response name="'+this.responses[ri].name+'">';
-        for (var rj = 0; rj <  this.responses[ri].value.length; rj++){
-          responsesstr =responsesstr +'<resnode name="' +this.responses[ri].value[rj].name +'" type="' +this.responses[ri].value[rj].type + '" size="' +this.responses[ri].value[rj].size +'"></resnode>';
-        }
-        responsesstr = responsesstr + '</response>';        
-      }
-      responsesstr =responsesstr +"</responses>";
-      var commandsstr ="<commands>"
-      for (var ci = 0; ci < this.commands.length; ci++) { 
-        commandsstr = commandsstr + '<command name="'+this.commands[ci].name+'">';
-        for (var cj = 0; cj < this.commands[ci].value.length; cj++){
-          // console.log(chlength+"/"+j)
-          commandsstr =commandsstr +'<cmdnode name = "' +this.commands[ci].value[cj].name +'" type="' +this.commands[ci].value[cj].type + '" value="' +this.commands[ci].value[cj].value +'"></cmdnode>';
-        }
-        commandsstr = commandsstr + '</command>';        
-      }
-      commandsstr =commandsstr +"</commands>";
 
-      var checkcodesstr="<checkcodes><checkcode>";
-      for(var chki=0;chki<this.checkcodes.length;chki++){
-        checkcodesstr = checkcodesstr + '<chknode name="'+this.checkcodes[chki].name+'" type="'+this.checkcodes[chki].name+'" value="'+this.checkcodes[chki].value+'"></chknode>';
+      console.log(this.channels[0]);
+      console.log(this.channels.length);
+      var a =JSON.parse(JSON.stringify(this.channels));
+      console.log(a[0]);
+      for (var i = 0; i < this.channels.length; i++){
+        // console.log(this.channels[i]);
       }
-      checkcodesstr = checkcodesstr +"</checkcode></checkcodes>";
-      console.log("infos:",infostr);
-      console.log("responses:",responsesstr);
-      console.log("commands:",commandsstr);
-      console.log("checkcodes",checkcodesstr);
-      console.log(infostr+responsesstr+commandsstr+checkcodesstr);
-      // this.href ="data:application/octet-stream;base64," + infostr;
-      this.href = "data:text/plain," +infostr+responsesstr+commandsstr+checkcodesstr;
     },
-    // 读取excel文件
     ReadExcel:function($event){     
       var wb;//读取完成的数据
       var rABS = false; 
@@ -204,43 +150,13 @@ export default {
           // setTimeout(function(){console.log('3',that.channels)},2000)
       }
     },
-    //生成校验码
-    getcheckcode:function(param){
-      // console.log(param.start,param.end);
-      switch(param.chk){
-        case "ascii":
-        var checkcode=0;
-        for (var i = param.start; i <= param.end; i++) {
-          console.log(param.value[i].value);
-          var num =~parseInt(param.value[i].value,16);
-          console.log(num);
-          // String.fromCharCode(param.value[i]);
-          // checkcode = checkcode +   "7E".charCodeAt();
-          console.log(checkcode);
-        }
-        break;
-        default :
-        console.log("default");
-        break;
-      }
+    handleOk (convertedData) {
+      console.log(convertedData)
     },
-    stringToBytes:function(str) {  
-    var ch, st, re = [];  
-    for (var i = 0; i < str.length; i++ ) {  
-      ch = str.charCodeAt(i);  // get char   
-      st = [];                 // set up "stack"  
-      do {  
-        st.push( ch & 0xFF );  // push byte to stack  
-        ch = ch >> 8;          // shift value down by 1 byte  
-      }    
-      while ( ch );  
-      // add stack contents to result  
-      // done because chars have "wrong" endianness  
-      re = re.concat( st.reverse() );  
-    }  
-    // return an array of bytes  
-    return re;  
-  }  
+    result:function(){
+      console.log(this.responses[0].name);
+      console.log(this.responses[0].value);
+    }
 
   }
 }
