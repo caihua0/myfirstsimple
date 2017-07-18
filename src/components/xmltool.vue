@@ -99,28 +99,28 @@ export default {
   },
   methods:{
     addresponsenode:function(i){
-      var response ={name:"",type:"",size:""};
+      var response ={name:"node",type:"byte",size:""};
       this.responses[i].value.push(response);
     },
     delresponsenode:function(i,index){
       this.responses[i].value.splice(index,1);
     },
     addcommandnode:function(i){
-      var command ={name:"",type:"",value:""};
+      var command ={name:"node",type:"byte",value:""};
       this.commands[i].value.push(command);
     },
     delcommandnode:function(i,index){
       this.commands[i].value.splice(index,1);
     },
     addcheckcodenode:function(){
-      var checkcode ={name:"",type:"",value:""};
+      var checkcode ={name:"node",type:"byte",value:""};
       this.checkcodes.push(checkcode);
     },
     delcheckcodenode:function(index){
       this.checkcodes.splice(index,1);
     },
     addbefore:function(param,index){
-        param.splice(index,0,{});
+        param.splice(index,0,{name:"node",type:"byte"});
         
     },
     //将excel添加进来
@@ -135,6 +135,8 @@ export default {
     },
     //下载xml
     ExportXml:function(){
+      var head='<?xml version="1.0" encoding="utf-8"?><protocol>'
+      var foot='</protocol>'
       var infostr='<infos type="' +this.deviceinfo.type+ '" value="' +this.deviceinfo.value +'" commandindex="' +this.deviceinfo.commandindex+ '" length="' +this.deviceinfo.length +'" head="' +this.deviceinfo.head+ '"></infos>';
       var reslength = this.responses.length;
       var chlength =this.channels.length;
@@ -152,7 +154,7 @@ export default {
         commandsstr = commandsstr + '<command name="'+this.commands[ci].name+'">';
         for (var cj = 0; cj < this.commands[ci].value.length; cj++){
           // console.log(chlength+"/"+j)
-          commandsstr =commandsstr +'<cmdnode name = "' +this.commands[ci].value[cj].name +'" type="' +this.commands[ci].value[cj].type + '" value="' +this.commands[ci].value[cj].value +'"></cmdnode>';
+          commandsstr =commandsstr +'<cmdnode name="' +this.commands[ci].value[cj].name +'" type="' +this.commands[ci].value[cj].type + '" value="' +this.commands[ci].value[cj].value +'"></cmdnode>';
         }
         commandsstr = commandsstr + '</command>';        
       }
@@ -167,7 +169,7 @@ export default {
       console.log("responses:",responsesstr);
       console.log("commands:",commandsstr);
       console.log("checkcodes",checkcodesstr);
-      console.log(infostr+responsesstr+commandsstr+checkcodesstr);
+      console.log(head+infostr+responsesstr+commandsstr+checkcodesstr+foot);
       // this.href ="data:application/octet-stream;base64," + infostr;
       this.href = "data:text/plain," +infostr+responsesstr+commandsstr+checkcodesstr;
     },
@@ -206,41 +208,74 @@ export default {
     },
     //生成校验码
     getcheckcode:function(param){
-      // console.log(param.start,param.end);
+      if(param.value.length<=0){
+        alert("请先输入数据")
+        return;
+      }
       switch(param.chk){
         case "ascii":
+        var checkcodearray=[];
         var checkcode=0;
         for (var i = param.start; i <= param.end; i++) {
-          console.log(param.value[i].value);
-          var num =~parseInt(param.value[i].value,16);
-          console.log(num);
-          // String.fromCharCode(param.value[i]);
-          // checkcode = checkcode +   "7E".charCodeAt();
-          console.log(checkcode);
+          checkcodearray =checkcodearray.concat(this.bytestr2Bytes(param.value[i].value) );
         }
+        for (var j = 0; j < checkcodearray.length; j++) {
+          checkcode+=checkcodearray[j];
+        }
+        checkcode=~(checkcode%65536) + 1;
+        checkcode=checkcode&0xFFFF;
+        //323030344430343130303030 ==>FDA1
+        checkcode.toString(16).toUpperCase();
+
+        var p={}; 
+        p.name="checknum";
+        p.type="byte";
+        p.value=checkcode.toString(16).toUpperCase();
+
+        param.value.push(p);
         break;
         default :
         console.log("default");
         break;
       }
     },
-    stringToBytes:function(str) {  
-    var ch, st, re = [];  
-    for (var i = 0; i < str.length; i++ ) {  
-      ch = str.charCodeAt(i);  // get char   
-      st = [];                 // set up "stack"  
-      do {  
-        st.push( ch & 0xFF );  // push byte to stack  
-        ch = ch >> 8;          // shift value down by 1 byte  
-      }    
-      while ( ch );  
-      // add stack contents to result  
-      // done because chars have "wrong" endianness  
-      re = re.concat( st.reverse() );  
-    }  
-    // return an array of bytes  
-    return re;  
-  }  
+    //按字符转
+    str2Bytes:function(str) {  
+      var ch, st, re = [];  
+      for (var i = 0; i < str.length; i++ ) {  
+        ch = str.charCodeAt(i);  // get char   
+        st = [];                 // set up "stack"  
+        do {  
+          st.push( ch & 0xFF );  // push byte to stack  
+          ch = ch >> 8;          // shift value down by 1 byte  
+        }    
+        while ( ch );  
+        // add stack contents to result  
+        // done because chars have "wrong" endianness  
+        re = re.concat( st.reverse() );  
+      }  
+      // return an array of bytes  
+      return re;  
+    },
+    //按字节转
+    bytestr2Bytes:function Str2Bytes(str){
+      var pos = 0;
+      var len = str.length;
+      if(len %2 != 0)
+      {
+         return null; 
+      }
+      len /= 2;
+      var hexA = [];
+      for(var i=0; i<len; i++)
+      {
+         var s = str.substr(pos, 2);
+         var v = parseInt(s, 16);
+         hexA.push(v);
+         pos += 2;
+      }
+      return hexA;
+    } 
 
   }
 }
