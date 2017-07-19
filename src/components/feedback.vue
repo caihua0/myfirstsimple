@@ -42,7 +42,7 @@
 				</div>
 			</div>
 			<div class="gbutton">
-				<button type="button" class="button">提交</button>
+				<button type="button" class="button" @click="getlist">提交</button>
 			</div>
 		</div>
 	</div>
@@ -56,6 +56,24 @@ export default {
       msg: 'Welcome to Game',
       feedback:{}
     }
+  },
+  methods:{
+  	getlist:function(){
+  		
+	  // GET /someUrl
+	  this.$http.get('http://172.29.1.193:8080/gamelib/feedback/list').then(response => {
+
+	    // get body data
+	    console.log(response.body);
+
+	  }, response => {
+	    // error callback
+	  });
+
+  	},
+  	submit:function(){
+  		
+  	}
   }
 }
 </script>
