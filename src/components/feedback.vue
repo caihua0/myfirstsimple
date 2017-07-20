@@ -42,7 +42,8 @@
 				</div>
 			</div>
 			<div class="gbutton">
-				<button type="button" class="button" @click="getlist">提交</button>
+				<button type="button" class="button" @click="add">提交</button>
+				<button type="button" class="button" @click="getlist">列表</button>
 			</div>
 		</div>
 	</div>
@@ -58,21 +59,24 @@ export default {
     }
   },
   methods:{
+  	add:function(){
+  		console.log("add");
+  		this.$http.post('http://localhost:8080/gamelib/feedback/add',{name:'123'},function(response){
+  			console.log(response.body);
+  		});
+  	},  	
   	getlist:function(){
-  		
 	  // GET /someUrl
-	  this.$http.get('http://172.29.1.193:8080/gamelib/feedback/list').then(response => {
+	  this.$http.get('http://localhost:8080/gamelib/feedback/list').then(response => {
 
 	    // get body data
 	    console.log(response.body);
+	    // console.log(response.data);
 
 	  }, response => {
 	    // error callback
 	  });
 
-  	},
-  	submit:function(){
-  		
   	}
   }
 }
