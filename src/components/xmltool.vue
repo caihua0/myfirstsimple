@@ -360,8 +360,8 @@ export default {
   padding:4px;
   vertical-align: bottom;
 }
-/*.table  tbody  tr : hover{
-  background:gray;
+/*.table > tbody > tr:hover{
+  background:#ddd;
 }*/
 .table tbody tr td {
   border: 1px solid #ddd;
