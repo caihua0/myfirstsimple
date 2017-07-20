@@ -203,11 +203,11 @@ export default {
         checkcodesstr = checkcodesstr + '<chknode name="'+this.checkcodes[chki].name+'" type="'+this.checkcodes[chki].name+'" value="'+this.checkcodes[chki].value+'"></chknode>';
       }
       checkcodesstr = checkcodesstr +"</checkcode></checkcodes>";
-      console.log("infos:",infostr);
-      console.log("responses:",responsesstr);
-      console.log("commands:",commandsstr);
-      console.log("checkcodes",checkcodesstr);
-      console.log(head+infostr+responsesstr+commandsstr+checkcodesstr+foot);
+      // console.log("infos:",infostr);
+      // console.log("responses:",responsesstr);
+      // console.log("commands:",commandsstr);
+      // console.log("checkcodes",checkcodesstr);
+      // console.log(head+infostr+responsesstr+commandsstr+checkcodesstr+foot);
       this.href = "data:text/plain," +infostr+responsesstr+commandsstr+checkcodesstr;
     },
     // 读取excel文件
@@ -329,7 +329,6 @@ export default {
 .pannel{
   background: #FFF;
   border: 5px solid #e5e5e5;
-  /*border-color: #d8d8d8;*/
   border-radius: 0 !important;
   box-shadow: none !important;
   margin-bottom: 20px;
@@ -361,9 +360,9 @@ export default {
   padding:4px;
   vertical-align: bottom;
 }
-.table > tbody > tr : hover{
-  background:#gray;
-}
+/*.table  tbody  tr : hover{
+  background:gray;
+}*/
 .table tbody tr td {
   border: 1px solid #ddd;
   padding:4px;
