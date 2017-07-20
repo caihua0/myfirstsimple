@@ -8,16 +8,31 @@
     <!-- infos： {{deviceinfo}}<br/> -->
     <!-- responses： {{responses}}<br/> -->
     <!-- commands： {{commands}}<br/> -->
-
-    类型(delimiter):<input type="text" name="type" v-model="deviceinfo.type">
-    分隔符:<input type="text" name="value" v-model="deviceinfo.value">
-    命令起始位置<input type="text" name="commandindex" v-model="deviceinfo.commandindex">
-    命令长度<input type="text" name="length" v-model="deviceinfo.length">
-    头部字节<input type="text" name="head" v-model="deviceinfo.head">
-    <input type="file" @change="ReadExcel">
-    <input type="button" @click="ExportExcel" value="导入">
-    <!-- <input type="button" @click="ExportXml" value="生成"> -->
-    <a v-bind:href="href" download="xml.txt" @click="ExportXml">下载</a>
+    <div class="pannel">
+      <div class="head">设备基本信息</div>
+        <table class="table">
+        <tr>
+          <td>协议包类型(delimiter)</td><td><input type="text" name="type" v-model="deviceinfo.type"></td>
+          <td>分隔符</td><td><input type="text" name="value" v-model="deviceinfo.value"></td>
+          <td>命令校验码类型</td>
+          <td>
+           <select v-model="deviceinfo.checkcodetype">
+           <option selected value="ascii">ascii</option>
+           <option value="banana">香蕉</option>
+           <option value="watermelon">西瓜</option>
+           </select>
+          </td>
+        </tr>
+        <tr>
+          <td>命令起始位置</td><td><input type="text" name="commandindex" v-model="deviceinfo.commandindex"></td>
+          <td>命令长度</td><td><input type="text" name="length" v-model="deviceinfo.length"></td>
+          <td>头部字节</td><td><input type="text" name="head" v-model="deviceinfo.head"></td>
+        </tr>
+        </table>
+        <div class="foot">
+          <a class="a" v-bind:href="href" download="xml.txt" @click="ExportXml">下载</a>
+        </div>
+    </div>
     <!-- <vue-xlsx-table @on-click-ok="handleOk"></vue-xlsx-table> -->
     <!-- <input type="file" v-model="filePath"/> -->
   </div>
@@ -25,57 +40,81 @@
   <!-- <button v-on:click="result">log</button> -->
 
   <!-- response信息 -->
-  <div id="response" v-for="(response,i) in responses">
-    <h4>收到数据{{i+1}}:{{response.name}}</h4>
+  <div class="pannel" v-for="(response,i) in responses">
+    <div class="head">收到数据{{i+1}}:{{response.name}}</div>
     <!-- 命令名称<input type="text" name="responsename" v-model="response.name"> -->
-    <button v-on:click="addresponsenode(i)">添加</button>
-    <div v-for="(resnode,index) in response.value"> 
-      <!-- <div>{{resnode}}</div> -->
-      序号<input type="text" name="index" v-model="index" readonly="true">
-      名称<input type="text" name="name" v-model="resnode.name" >
-      类型<input type="text" name="type" v-model="resnode.type" >
-      长度(字节数)<input type="text" name="size" v-model="resnode.size" >
-      <button @click="delresponsenode(i,index)">删除</button>
-      <button @click="addbefore(response.value,index)">插入</button>
+    <table class="table">
+
+      <thead><tr><th>#</th><th>名称</th><th>类型</th><th>长度(字节数)</th><th>操作</th></tr></thead>
+      <tbody>
+      <tr class="body" v-for="(resnode,index) in response.value"> 
+        <!-- <div>{{resnode}}</div> -->
+        <td>{{index+1}}</td>
+        <td><input type="text" name="name" v-model="resnode.name" ></td>
+        <td><input type="text" name="type" v-model="resnode.type" ></td>
+        <td><input type="text" name="size" v-model="resnode.size" ></td>
+        <td><button @click="delresponsenode(i,index)">删除</button>
+        <button @click="addbefore(response.value,index)">插入</button></td>
+      </tr>
+      </tbody>
+    </table>
+    <div class="foot">
+      <button v-on:click="addresponsenode(i)">添加</button>
+      <input v-if="i===0" type="file" @change="ReadExcel">
+      <input v-if="i===0" type="button" @click="ExportExcel" value="导入">
     </div>
+  
+
   </div>
   
-  <!-- command信息 -->
-  <div id="command" v-for="(command,i) in commands">
-      <h4>下发命令{{i+1}}:{{command.name}}</h4>
-      <!-- 命令名称<input type="text" name="commandname" v-model="command.name"> -->
-      <button v-on:click="addcommandnode(i)">添加</button>
-      校验码类型:
-      <select v-model="command.chk">
-       <option selected value="ascii">ascii</option>
-       <option value="banana">香蕉</option>
-       <option value="watermelon">西瓜</option>
-      </select>
-      <input type="text" name="start" v-model="command.start">-<input type="text" name="end" v-model="command.end"><button @click="getcheckcode(command)">生成校验码</button>
 
-      <div v-for="(commandnode,index) in command.value"> 
-        <!-- <div>{{commandnode}}</div> -->
-        序号<input type="text" name="index" v-model="index" readonly="true">
-        名称<input type="text" name="name" v-model="commandnode.name" >
-        类型<input type="text" name="type" v-model="commandnode.type" >
-        值<input type="text" name="value" v-model="commandnode.value" >
-        <button @click="delcommandnode(i,index)">删除</button>
-        <button @click="addbefore(command.value,index)">插入</button>
+
+  <!-- command信息 -->
+
+  <div class="pannel" v-for="(command,i) in commands">
+    <div class="head">下发命令{{i+1}}:{{command.name}}</div>
+      <!-- 命令名称<input type="text" name="commandname" v-model="command.name"> -->
+
+      <table class="table">
+        <thead><tr><th>#</th><th>名称</th><th>类型</th><th>长值</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr class="body" v-for="(commandnode,index) in command.value"> 
+            <td>{{index+1}}</td>
+            <td><input type="text" name="name" v-model="commandnode.name" ></td>
+            <td><input type="text" name="type" v-model="commandnode.type" ></td>
+            <td><input type="text" name="value" v-model="commandnode.value" ></td>
+            <td><button @click="delcommandnode(i,index)">删除</button>
+            <button @click="addbefore(command.value,index)">插入</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="foot">
+        <button v-on:click="addcommandnode(i)">添加</button>
+        起始节点:<input type="text" class="chkinput" v-model="command.start">
+        终结节点:<input type="text" class="chkinput" v-model="command.end">
+        <button @click="getcheckcode(command)">生成校验码</button>
       </div>
   </div>
 
   <!-- checkcode信息 -->
-  <div id="checkcode">
-      <h4>校验码-checkcode</h4>
+  <div class="pannel">
+      <div class="head">校验码-checkcode</div>
       <!-- 命令名称<input type="text" name="commandname" v-model="command.name"> -->
-      <button v-on:click="addcheckcodenode()">添加</button>
-      <div v-for="(checkcode,index) in checkcodes"> 
-        <!-- <div>{{commandnode}}</div> -->
-        序号<input type="text" name="index" v-model="index" readonly="true">
-        名称<input type="text" name="name" v-model="checkcode.name" >
-        类型<input type="text" name="type" v-model="checkcode.type" >
-        值<input type="text" name="value" v-model="checkcode.value" >
-        <button @click="delcheckcodenode(index)">删除</button>
+      <table class="table">
+        <thead><tr><th>#</th><th>名称</th><th>类型</th><th>参数</th><th>操作</th></tr></thead>
+        <tbody>
+        <tr class="body" v-for="(checkcode,index) in checkcodes">
+          <td>{{index+1}}</td>
+          <td><input type="text" name="name" v-model="checkcode.name" ></td>
+          <td><input type="text" name="type" v-model="checkcode.type" ></td>
+          <td><input type="text" name="value" v-model="checkcode.value" ></td>
+          <td><button @click="delcheckcodenode(index)">删除</button>
+          <button @click="addbefore(checkcodes,index)">插入</button></td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="foot">
+        <button v-on:click="addcheckcodenode()">添加</button>
       </div>
   </div>
 </div>
@@ -87,26 +126,25 @@ export default {
   name: 'app',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App',
-      responses:[{name:"CurrentData",value:[]},{name:"ControlData",value:[]},{name:"Heartbeat",value:[]}],
-      commands:[{name:"CurrentData",value:[],start:0,end:0,chk:"ascii"},{name:"ControlData",value:[],start:0,end:0,chk:"ascii"}],
-      deviceinfo:{type:"",value:"",commandindex:"",length:"",head:""},
-      checkcodes:[],
+      // msg: 'Welcome to Your Vue.js App',
+      responses:[{name:"CurrentData",value:[{name:"node",type:"byte",size:"8"}]},{name:"ControlData",value:[{name:"node",type:"byte",size:"8"}]},{name:"Heartbeat",value:[{name:"node",type:"byte",size:"8"}]}],
+      commands:[{name:"CurrentData",value:[{name:"node",type:"byte",value:"00"}],start:0,end:0},{name:"ControlData",value:[{name:"node",type:"byte",value:"00"}],start:0,end:0}],
+      deviceinfo:{type:"delimiter",value:"0D",commandindex:"5",length:"4",head:"7E",checkcodetype:"ascii"},
+      checkcodes:[{name:"node",type:"byte",value:"start,end"},{name:"node",type:"byte",value:"ascii"}],
       channels:[],
       href:""
-
     }
   },
   methods:{
     addresponsenode:function(i){
-      var response ={name:"node",type:"byte",size:""};
+      var response ={name:"node",type:"byte",size:"8"};
       this.responses[i].value.push(response);
     },
     delresponsenode:function(i,index){
       this.responses[i].value.splice(index,1);
     },
     addcommandnode:function(i){
-      var command ={name:"node",type:"byte",value:""};
+      var command ={name:"node",type:"byte",value:"00"};
       this.commands[i].value.push(command);
     },
     delcommandnode:function(i,index){
@@ -170,7 +208,6 @@ export default {
       console.log("commands:",commandsstr);
       console.log("checkcodes",checkcodesstr);
       console.log(head+infostr+responsesstr+commandsstr+checkcodesstr+foot);
-      // this.href ="data:application/octet-stream;base64," + infostr;
       this.href = "data:text/plain," +infostr+responsesstr+commandsstr+checkcodesstr;
     },
     // 读取excel文件
@@ -212,7 +249,7 @@ export default {
         alert("请先输入数据")
         return;
       }
-      switch(param.chk){
+      switch(this.deviceinfo.checkcodetype){
         case "ascii":
         var checkcodearray=[];
         var checkcode=0;
@@ -282,5 +319,74 @@ export default {
 </script>
 
 <style>
+*{
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.42857143;
+  color: #999999;
+  box-sizing: border-box;
+}
+.pannel{
+  background: #FFF;
+  border: 5px solid #e5e5e5;
+  /*border-color: #d8d8d8;*/
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 20px;
+}
+.head{
+  color: #FFFFFF;
+  background: #0a819c;
+  border-color: #0a819c !important;
+  font-size: 18px;
+  padding: 7px 15px;
+  border-top-right-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+}
+.body{
+  padding: 15px;
+}
 
+.table{
+  border: 1px solid #ddd;
+  width: 100%;
+  margin-bottom: 10px;
+  border-collapse: collapse;
+  border-spacing: 0;
+  max-width: 100%;
+  background-color: transparent;
+}
+.table > thead > tr > th{
+  border: 1px solid #ddd;
+  padding:4px;
+  vertical-align: bottom;
+}
+.table > tbody > tr : hover{
+  background:#gray;
+}
+.table tbody tr td {
+  border: 1px solid #ddd;
+  padding:4px;
+  vertical-align: bottom;
+}
+.table tbody tr td input {
+  border: 0px;
+  width: 100%;
+  height: 100%;
+}
+.chkinput{
+  width:40px;
+}
+.foot{
+  height: 100%;
+  /*width: 40px;*/
+  padding: 10px 12px ;
+}
+.a{
+  text-decoration:none;
+  padding: 8px;
+  font-size: 8px;
+  color: #FFF;
+  background-color: #5bc0de;
+}
 </style>
