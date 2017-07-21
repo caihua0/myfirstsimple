@@ -14,7 +14,7 @@ Vue.use(VueResource)
 //HTML5 FileReader API 有两个方法可以读取本地文件 readAsBinaryString 和 readAsArrayBuffer, 默认rABS为true，也就是使用readAsBinaryString
 var v = new Vue({
   el: '#app',
-  // render: h => h(feedback)
-  render:h=>h(XmlTool)
+  render: h => h(feedback)
+  // render:h=>h(XmlTool)
 })
 

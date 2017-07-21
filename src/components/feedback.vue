@@ -61,7 +61,7 @@ export default {
   methods:{
   	add:function(){
   		console.log("add");
-  		this.$http.post('http://localhost:8080/gamelib/feedback/add',{name:'123'},function(response){
+  		this.$http.post('http://localhost:8080/gamelib/feedback/add',feedback,function(response){
   			console.log(response.body);
   		});
   	},  	
