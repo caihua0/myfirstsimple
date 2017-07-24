@@ -208,7 +208,7 @@ export default {
       // console.log("commands:",commandsstr);
       // console.log("checkcodes",checkcodesstr);
       // console.log(head+infostr+responsesstr+commandsstr+checkcodesstr+foot);
-      this.href = "data:text/plain," +infostr+responsesstr+commandsstr+checkcodesstr;
+      this.href = "data:text/plain," +head +infostr+responsesstr+commandsstr+checkcodesstr +foot;
     },
     // 读取excel文件
     ReadExcel:function($event){     
@@ -360,9 +360,7 @@ export default {
   padding:4px;
   vertical-align: bottom;
 }
-/*.table > tbody > tr:hover{
-  background:#ddd;
-}*/
+/* */
 .table tbody tr td {
   border: 1px solid #ddd;
   padding:4px;
