@@ -14,19 +14,13 @@
         <tr>
           <td>协议包类型(delimiter)</td><td><input type="text" name="type" v-model="deviceinfo.type"></td>
           <td>分隔符</td><td><input type="text" name="value" v-model="deviceinfo.value"></td>
-          <td>命令校验码类型</td>
-          <td>
-           <select v-model="deviceinfo.checkcodetype">
-           <option selected value="ascii">ascii</option>
-           <option value="banana">香蕉</option>
-           <option value="watermelon">西瓜</option>
-           </select>
-          </td>
+          <td>头部字节</td>
+          <td><input type="text" name="head" v-model="deviceinfo.head"></td>
         </tr>
         <tr>
           <td>命令起始位置</td><td><input type="text" name="commandindex" v-model="deviceinfo.commandindex"></td>
           <td>命令长度</td><td><input type="text" name="length" v-model="deviceinfo.length"></td>
-          <td>头部字节</td><td><input type="text" name="head" v-model="deviceinfo.head"></td>
+          <td></td><td></td>
         </tr>
         </table>
         <div class="foot">
@@ -43,28 +37,87 @@
   <div class="pannel" v-for="(response,i) in responses">
     <div class="head">收到数据{{i+1}}:{{response.name}}</div>
     <!-- 命令名称<input type="text" name="responsename" v-model="response.name"> -->
+    <div>
     <table class="table">
 
-      <thead><tr><th>#</th><th>名称</th><th>类型</th><th>长度(字节数)</th><th>操作</th></tr></thead>
+      <thead><tr>
+      <th>#</th>
+      <th>名称</th>
+      <th>数据表示方式</th>
+      <th>长度(字节数)</th>
+      <th>字段含义</th>
+      <th>数据结果类型</th>
+      <th>数据映射(序号)</th>
+      <th>默认值</th>
+      <th>操作</th>
+      </tr></thead>
       <tbody>
       <tr class="body" v-for="(resnode,index) in response.value"> 
         <!-- <div>{{resnode}}</div> -->
         <td>{{index+1}}</td>
-        <td><input type="text" name="name" v-model="resnode.name" ></td>
-        <td><input type="text" name="type" v-model="resnode.type" ></td>
-        <td><input type="text" name="size" v-model="resnode.size" ></td>
-        <td><button @click="delresponsenode(i,index)">删除</button>
+        <td><input class="text" type="text" name="name" v-model="resnode.name" ></td>
+        <td><input class="text" type="text" name="type" v-model="resnode.type" ></td>
+        <td><input class="text" type="text" name="size" v-model="resnode.size" ></td>
+        <td><input class="text" type="text" name="style" v-model="resnode.style" >  
+
+           </td>
+        <td><!-- <input type="text" name="datatype" v-model="resnode.datatype" > -->
+            <select class="select" v-model="resnode.datatype">
+             <option value="i">i</option>
+             <option value="f">f</option>
+             <option value="s">s</option>
+             <option value="I">I</option>
+             <option value="F">F</option>
+             <option value="S">S</option>
+            </select>
+        </td>
+        <td><input class="text" type="text" name="ref" v-model="resnode.ref" ></td>
+        <td><input class="text" type="text" name="value" v-model="resnode.value" ></td>
+        <td><button @click="delresponsenode(response.value,i,index)">删除</button>
         <button @click="addbefore(response.value,index)">插入</button></td>
       </tr>
       </tbody>
     </table>
     <div class="foot">
-      <button v-on:click="addresponsenode(i)">添加</button>
+
+      <button v-on:click="addresponsenode(response.value,i)">添加</button>
       <input v-if="i===0" type="file" @change="ReadExcel">
       <input v-if="i===0" type="button" @click="ExportExcel" value="导入">
-    </div>
-  
+      <div class="right"><input  type="checkbox" v-model="response.isreplay"> 此消息是否需要回复</div>
 
+    </div>
+    </div>
+
+
+    <div  v-if="response.isreplay">
+    <table class="table">
+      <thead><tr>
+      <th>#</th>
+      <th>名称</th>
+      <th>数据表示方式</th>
+      <th>数据映射(序号)</th>
+      <th>字段含义</th>
+      <th>默认值</th>
+      <th>操作</th>
+      </tr></thead>
+      <tbody>
+      <tr class="body" v-for="(resnode,index) in response.value2"> 
+        <!-- <div>{{resnode}}</div> -->
+        <td>{{index+1}}</td>
+        <td><input class="text" type="text" name="name" v-model="resnode.name" ></td>
+        <td><input class="text" type="text" name="type" v-model="resnode.type" ></td>
+                <td><input class="text" type="text" name="ref" v-model="resnode.ref" ></td>
+        <td><input class="text" type="text" name="style" v-model="resnode.style" ></td>
+        <td><input class="text" type="text" name="value" v-model="resnode.value" ></td>
+        <td><button @click="delresponsenode(response.value2,i,index)">删除</button>
+        <button @click="addbefore(response.value2,index)">插入</button></td>
+      </tr>
+      </tbody>
+    </table>
+    <div class="foot">
+      <button v-on:click="addresponsenode(response.value2,i)">添加</button>
+    </div>
+    </div>
   </div>
   
 
@@ -76,23 +129,28 @@
       <!-- 命令名称<input type="text" name="commandname" v-model="command.name"> -->
 
       <table class="table">
-        <thead><tr><th>#</th><th>名称</th><th>类型</th><th>长值</th><th>操作</th></tr></thead>
+        <thead><tr>
+        <th>#</th>
+        <th>名称</th>
+        <th>数据表示方式</th> 
+        <th>数据结果类型</th>
+        <th>默认值</th>    
+        <th>操作</th>
+        </tr></thead>
         <tbody>
           <tr class="body" v-for="(commandnode,index) in command.value"> 
             <td>{{index+1}}</td>
-            <td><input type="text" name="name" v-model="commandnode.name" ></td>
-            <td><input type="text" name="type" v-model="commandnode.type" ></td>
-            <td><input type="text" name="value" v-model="commandnode.value" ></td>
-            <td><button @click="delcommandnode(i,index)">删除</button>
+            <td><input class="text" type="text" name="name" v-model="commandnode.name" ></td>
+            <td><input class="text" type="text" name="type" v-model="commandnode.type" ></td>
+            <td><input class="text" type="text" name="style" v-model="commandnode.style" ></td>
+            <td><input class="text" type="text" name="value" v-model="commandnode.value" ></td>
+            <td><button @click="delcommandnode(command.value,i,index)">删除</button>
             <button @click="addbefore(command.value,index)">插入</button></td>
           </tr>
         </tbody>
       </table>
       <div class="foot">
-        <button v-on:click="addcommandnode(i)">添加</button>
-        起始节点:<input type="text" class="chkinput" v-model="command.start">
-        终结节点:<input type="text" class="chkinput" v-model="command.end">
-        <button @click="getcheckcode(command)">生成校验码</button>
+        <button v-on:click="addcommandnode(command.value,i)">添加</button>
       </div>
   </div>
 
@@ -101,21 +159,30 @@
       <div class="head">校验码-checkcode</div>
       <!-- 命令名称<input type="text" name="commandname" v-model="command.name"> -->
       <table class="table">
-        <thead><tr><th>#</th><th>名称</th><th>类型</th><th>参数</th><th>操作</th></tr></thead>
+        <thead><tr><th>#</th><th>名称</th><th>类型</th><th>参数</th></tr></thead>
         <tbody>
-        <tr class="body" v-for="(checkcode,index) in checkcodes">
-          <td>{{index+1}}</td>
-          <td><input type="text" name="name" v-model="checkcode.name" ></td>
-          <td><input type="text" name="type" v-model="checkcode.type" ></td>
-          <td><input type="text" name="value" v-model="checkcode.value" ></td>
-          <td><button @click="delcheckcodenode(index)">删除</button>
-          <button @click="addbefore(checkcodes,index)">插入</button></td>
+        <tr class="body">
+          <td>1</td>
+          <td><input class="text" type="text" name="name" v-model="checkcodes[0].name" ></td>
+          <td><input class="text" type="text" name="type" v-model="checkcodes[0].type" ></td>
+          <td><input class="text" type="text" name="value" v-model="checkcodes[0].value" ></td>
+
+        </tr>
+        <tr class="body">
+          <td>2</td>
+          <td><select class="select" v-model="checkcodes[1].name">
+               <option selected value="asci">asci</option>
+               <option value="banana"></option>
+               <option value="watermelon">西瓜</option>
+               </select></td>
+          <td><input  class="text" type="text" name="type" v-model="checkcodes[1].type" ></td>
+          <td></td>
         </tr>
         </tbody>
       </table>
-      <div class="foot">
+<!--       <div class="foot">
         <button v-on:click="addcheckcodenode()">添加</button>
-      </div>
+      </div> -->
   </div>
 </div>
 </template>
@@ -127,36 +194,38 @@ export default {
   data () {
     return {
       // msg: 'Welcome to Your Vue.js App',
-      responses:[{name:"CurrentData",value:[{name:"node",type:"byte",size:"8"}]},{name:"ControlData",value:[{name:"node",type:"byte",size:"8"}]},{name:"Heartbeat",value:[{name:"node",type:"byte",size:"8"}]}],
-      commands:[{name:"CurrentData",value:[{name:"node",type:"byte",value:"00"}],start:0,end:0},{name:"ControlData",value:[{name:"node",type:"byte",value:"00"}],start:0,end:0}],
-      deviceinfo:{type:"delimiter",value:"0D",commandindex:"5",length:"4",head:"7E",checkcodetype:"ascii"},
-      checkcodes:[{name:"node",type:"byte",value:"start,end"},{name:"node",type:"byte",value:"ascii"}],
-      channels:[],
+      responses:[{name:"CurrentData",value:[{name:"node",type:"byte",size:"8",style:"",ref:"",datatype:"",value:""}],isreplay:false,value2:[{name:"node",type:"byte",size:"",style:"",ref:"",datatype:"",value:""}]},
+                 {name:"ControlData",value:[{name:"node",type:"byte",size:"8",style:"",ref:"",datatype:"",value:""}],isreplay:false,value2:[{}]},
+                 {name:"Heartbeat",value:[{name:"node",type:"byte",size:"8",style:"",ref:"",datatype:"",value:""}],isreplay:false,value2:[{}]}],
+      commands:[{name:"CurrentData",value:[{name:"node",type:"byte",value:"00",style:""}]},
+                {name:"ControlData",value:[{name:"node",type:"byte",value:"00",style:""}]}],
+      deviceinfo:{type:"delimiter",value:"0D",commandindex:"5",length:"4",head:"7E",checkcodetype:"asci"},
+      checkcodes:[{name:"data",type:"byte",value:"[Start],[End]"},{name:"asci",type:"byte"}],
       href:""
     }
   },
   methods:{
-    addresponsenode:function(i){
-      var response ={name:"node",type:"byte",size:"8"};
-      this.responses[i].value.push(response);
+    addresponsenode:function(param,i){
+      var response ={name:"node",type:"byte",size:"8",style:"",ref:"",datatype:"",value:""};
+      param.push(response);
     },
-    delresponsenode:function(i,index){
-      this.responses[i].value.splice(index,1);
+    delresponsenode:function(param,i,index){
+      param.splice(index,1);
     },
-    addcommandnode:function(i){
-      var command ={name:"node",type:"byte",value:"00"};
+    addcommandnode:function(param,i){
+      var command ={name:"node",type:"byte",size:"",style:"",ref:"",datatype:"",value:"00"};
       this.commands[i].value.push(command);
     },
-    delcommandnode:function(i,index){
+    delcommandnode:function(param,i,index){
       this.commands[i].value.splice(index,1);
     },
-    addcheckcodenode:function(){
-      var checkcode ={name:"node",type:"byte",value:""};
-      this.checkcodes.push(checkcode);
-    },
-    delcheckcodenode:function(index){
-      this.checkcodes.splice(index,1);
-    },
+    // addcheckcodenode:function(){
+    //   var checkcode ={name:"node",type:"byte",value:""};
+    //   this.checkcodes.push(checkcode);
+    // },
+    // delcheckcodenode:function(index){
+    //   this.checkcodes.splice(index,1);
+    // },
     addbefore:function(param,index){
         param.splice(index,0,{name:"node",type:"byte"});
         
@@ -177,16 +246,66 @@ export default {
       var foot='</protocol>'
       var infostr='<infos type="' +this.deviceinfo.type+ '" value="' +this.deviceinfo.value +'" commandindex="' +this.deviceinfo.commandindex+ '" length="' +this.deviceinfo.length +'" head="' +this.deviceinfo.head+ '"></infos>';
       var reslength = this.responses.length;
-      var chlength =this.channels.length;
+      //回复配置
       var responsesstr ="<responses>"; 
       for (var ri = 0; ri <  this.responses.length; ri++) {  
         responsesstr = responsesstr + '<response name="'+this.responses[ri].name+'">';
+
+        responsesstr = responsesstr + '<revice>';
         for (var rj = 0; rj <  this.responses[ri].value.length; rj++){
-          responsesstr =responsesstr +'<resnode name="' +this.responses[ri].value[rj].name +'" type="' +this.responses[ri].value[rj].type + '" size="' +this.responses[ri].value[rj].size +'"></resnode>';
+          if(this.responses[ri].value[rj].name!=""&&typeof(this.responses[ri].value[rj].name) != "undefined"){
+            responsesstr +='<resnode name="' +this.responses[ri].value[rj].name;
+          }
+          if(this.responses[ri].value[rj].type!=""&&typeof(this.responses[ri].value[rj].type) != "undefined"){
+            responsesstr +='" type="' +this.responses[ri].value[rj].type;
+          }
+          if(this.responses[ri].value[rj].size!=""&&typeof(this.responses[ri].value[rj].size) != "undefined"){
+            responsesstr +='" size="' +this.responses[ri].value[rj].size;
+          }
+          if(this.responses[ri].value[rj].style!=""&&typeof(this.responses[ri].value[rj].style) != "undefined"){
+              responsesstr +='" style="' +this.responses[ri].value[rj].style;
+          }
+          if(this.responses[ri].value[rj].datatype!=""&&typeof(this.responses[ri].value[rj].datatype) != "undefined"){
+              responsesstr +='" datatype="' +this.responses[ri].value[rj].datatype;
+          }
+          if(this.responses[ri].value[rj].ref!=""&&typeof(this.responses[ri].value[rj].ref)!= "undefined"){
+              responsesstr +='" ref="' +this.responses[ri].value[rj].ref;
+          }
+          if(this.responses[ri].value[rj].value!=""&&typeof(this.responses[ri].value[rj].value) != "undefined"){
+              responsesstr +='" value="' +this.responses[ri].value[rj].value;
+          }
+          responsesstr +='"></resnode>';
         }
+        responsesstr = responsesstr + '</revice>';
+
+        if(this.responses[ri].isreplay){
+          responsesstr = responsesstr + '<reply>';
+          for (var rk = 0; rk < this.responses[ri].value2.length; rk++) {
+            if(this.responses[ri].value2[rk].name!=""&&typeof(this.responses[ri].value2[rk].name) != "undefined"){
+              responsesstr +='<resnode name="' +this.responses[ri].value2[rk].name;
+            }
+            if(this.responses[ri].value2[rk].type!=""&&typeof(this.responses[ri].value2[rk].type) != "undefined"){
+              responsesstr +='" type="' +this.responses[ri].value2[rk].type;
+            }
+            if(this.responses[ri].value2[rk].style&&typeof(this.responses[ri].value2[rk].style) != "undefined"){
+              responsesstr +='" style="' +this.responses[ri].value2[rk].style;
+            }
+            if(this.responses[ri].value2[rk].ref&&typeof(this.responses[ri].value2[rk].ref) != "undefined"){
+              responsesstr +='" ref="' +this.responses[ri].value2[rk].ref;
+            }
+            if(this.responses[ri].value2[rk].value&&typeof(this.responses[ri].value2[rk].value) != "undefined"){
+              responsesstr +='" value="' +this.responses[ri].value2[rk].value;
+            }
+            responsesstr +='"></resnode>';
+          }
+          responsesstr = responsesstr + '</reply>';
+        }
+
+
         responsesstr = responsesstr + '</response>';        
       }
       responsesstr =responsesstr +"</responses>";
+      //命令配置
       var commandsstr ="<commands>"
       for (var ci = 0; ci < this.commands.length; ci++) { 
         commandsstr = commandsstr + '<command name="'+this.commands[ci].name+'">';
@@ -197,10 +316,14 @@ export default {
         commandsstr = commandsstr + '</command>';        
       }
       commandsstr =commandsstr +"</commands>";
-
+      //校验码配置
       var checkcodesstr="<checkcodes><checkcode>";
       for(var chki=0;chki<this.checkcodes.length;chki++){
-        checkcodesstr = checkcodesstr + '<chknode name="'+this.checkcodes[chki].name+'" type="'+this.checkcodes[chki].name+'" value="'+this.checkcodes[chki].value+'"></chknode>';
+        checkcodesstr += '<chknode name="'+this.checkcodes[chki].name+'" type="'+this.checkcodes[chki].type;
+        if(this.checkcodes[chki].value!=""&&typeof(this.checkcodes[chki].value) != "undefined"){
+          checkcodesstr +='" value="'+this.checkcodes[chki].value;
+        }
+        checkcodesstr +='"></chknode>'
       }
       checkcodesstr = checkcodesstr +"</checkcode></checkcodes>";
       // console.log("infos:",infostr);
@@ -208,7 +331,8 @@ export default {
       // console.log("commands:",commandsstr);
       // console.log("checkcodes",checkcodesstr);
       // console.log(head+infostr+responsesstr+commandsstr+checkcodesstr+foot);
-      this.href = "data:text/plain," +head +infostr+responsesstr+commandsstr+checkcodesstr +foot;
+      this.href = "data:text/plain,"+head+infostr+responsesstr+commandsstr+checkcodesstr +foot;
+      console.log(this.href);
     },
     // 读取excel文件
     ReadExcel:function($event){     
@@ -359,6 +483,7 @@ export default {
   border: 1px solid #ddd;
   padding:4px;
   vertical-align: bottom;
+
 }
 /* */
 .table tbody tr td {
@@ -366,7 +491,7 @@ export default {
   padding:4px;
   vertical-align: bottom;
 }
-.table tbody tr td input {
+.text {
   border: 0px;
   width: 100%;
   height: 100%;
@@ -385,5 +510,22 @@ export default {
   font-size: 8px;
   color: #FFF;
   background-color: #5bc0de;
+}
+.select{
+    box-shadow: none !important;
+    border-color: #e5e5e5;
+    display: block;
+    width: 100%;
+    /*height: 34px;*/
+    padding: 2px 3px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+}
+.right{
+  float: right;
 }
 </style>
